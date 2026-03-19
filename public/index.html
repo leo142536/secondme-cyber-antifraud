@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>局中局 · 赛博反诈免疫靶场</title>
+  <meta name="description" content="利用你的 SecondMe 真实画像，驱动 AI 骗子 Agent 对你的数字分身发动定制诈骗打靶。">
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Lottie Player Web Component -->
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.2/dist/lottie-player.js" defer></script>
+</head>
+<body class="home-page">
+  <div class="scanline"></div>
+  <div class="noise"></div>
+  <div class="bg-glow"></div>
+
+  <main class="hero">
+
+    <!-- Badge -->
+    <div class="hero-badge">A2A for Reconnect Hackathon 2025</div>
+
+    <!-- 主标题 -->
+    <h1 class="hero-title">
+      <span class="glitch" data-text="局中局">局中局</span>
+    </h1>
+    <p class="hero-subtitle mono">赛博反诈 · 免疫靶场 · SecondMe × A2A</p>
+
+    <!-- Lottie Hero Animation（雷达主视觉） -->
+    <div class="hero-lottie" id="heroLottie">
+      <!-- Lottie 动画优先加载；加载失败时显示 CSS Fallback -->
+      <lottie-player
+        src="https://lottie.host/5c1c7d4c-bd31-4a57-a024-a9bc0fcda079/XDqEbJXBT2.json"
+        background="transparent"
+        speed="0.7"
+        loop
+        autoplay
+        style="width:100%;height:100%"
+        onerror="showRadarFallback()"
+      ></lottie-player>
+    </div>
+
+    <!-- 描述 -->
+    <p class="hero-desc">
+      你的 <span class="highlight">SecondMe</span> 画像将喂养一个<span class="danger">顶级骗子 Agent</span><br>
+      它会对你的数字分身发动<em style="color:var(--amber);font-style:normal">定制诈骗攻击</em>，每一次被骗<br>
+      都是一次 <span class="glow-text">防诈免疫升级</span> ——知己知彼，方能百战不殆
+    </p>
+
+    <!-- 三栏特性 -->
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">🎭</div>
+        <div class="feature-title">专属定制骗局</div>
+        <div class="feature-desc">基于你真实职业和兴趣生成极具迷惑性的社工话术，无法用通用经验防御</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚔️</div>
+        <div class="feature-title">A2A 双盲对抗</div>
+        <div class="feature-desc">骗子 Agent（小宝）vs 你的专属数字分身，实时 5 轮博弈，右屏暴露思维链</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧬</div>
+        <div class="feature-title">免疫记忆注入</div>
+        <div class="feature-desc">守护者刘看山实时复盘骗局套路，提炼防骗底层逻辑写入你的认知系统</div>
+      </div>
+    </div>
+
+    <!-- 登录按钮 -->
+    <div class="login-section">
+      <a href="/api/auth/login" class="btn-login" id="loginBtn">
+        <span class="btn-icon">⚡</span>
+        进入靶场 · Login with SecondMe
+      </a>
+      <p class="login-hint">使用你的 SecondMe 账号赋能靶场——你的真实画像将成为骗局的弹药</p>
+      <div id="errorMsg" class="error-msg" style="display:none"></div>
+    </div>
+  </main>
+
+  <footer class="home-footer">
+    <span>A2A for Reconnect · 2025</span>
+    <span class="sep">—</span>
+    <span>Powered by SecondMe &amp; DeepSeek</span>
+  </footer>
+
+  <script>
+    // Lottie 加载失败时显示 CSS 雷达 fallback
+    function showRadarFallback() {
+      const lottie = document.getElementById('heroLottie');
+      lottie.innerHTML = `
+        <div class="lottie-fallback">
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-sweep"></div>
+          <div class="radar-center">🎯</div>
+        </div>
+      `;
+    }
+
+    // 3 秒后若 lottie-player 依然空（还未加载），切换 fallback
+    setTimeout(() => {
+      const player = document.querySelector('lottie-player');
+      if (player && !player.shadowRoot) showRadarFallback();
+    }, 4000);
+
+    // 错误提示
+    const urlParams = new URLSearchParams(window.location.search);
+    const err = urlParams.get('error');
+    if (err) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = '登录失败：' + decodeURIComponent(err) + '（请检查 .env 配置）';
+      el.style.display = 'block';
+    }
+
+    // Glitch 随机触发
+    const glitch = document.querySelector('.glitch');
+    setInterval(() => {
+      glitch.classList.add('glitch-active');
+      setTimeout(() => glitch.classList.remove('glitch-active'), 220);
+    }, 3200);
+  </script>
+</body>
+</html>

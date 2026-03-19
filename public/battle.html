@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对战大厅 · 局中局靶场</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.2/dist/lottie-player.js" defer></script>
+</head>
+<body class="battle-page">
+  <div class="scanline"></div>
+
+  <!-- ─── 顶部导航 ─── -->
+  <header class="battle-header" id="battleHeader">
+    <div class="header-left">
+      <span class="logo-small">局中局</span>
+      <span class="header-sep">·</span>
+      <span class="battle-status" id="battleStatus">待命中</span>
+    </div>
+    <div class="header-center">
+      <div class="round-indicator">
+        <span class="round-label">对战轮次</span>
+        <span class="round-num" id="roundNum">0 / 5</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="user-label">目标：</span>
+      <strong class="user-name" id="userName">加载中…</strong>
+      <a href="/api/auth/logout" class="btn-logout">退出</a>
+    </div>
+  </header>
+
+  <!-- ─── 主战场：分屏 ─── -->
+  <div class="battle-arena">
+
+    <!-- 左半屏：前台聊天区 -->
+    <div class="panel panel-left">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <span class="panel-icon">💬</span>
+          <span class="panel-title">前台 · 岁月静好区</span>
+          <span class="panel-subtitle mono">微信私信</span>
+        </div>
+        <div class="chat-participants">
+          <div class="participant xiaobao">
+            <span class="p-avatar">🎭</span>
+            <span class="p-name">小宝</span>
+            <span class="p-role">骗子 Agent</span>
+          </div>
+          <div class="vs-divider">VS</div>
+          <div class="participant victim">
+            <span class="p-avatar">👤</span>
+            <span class="p-name" id="victimName">你的分身</span>
+            <span class="p-role">防守 Agent</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-window" id="chatWindow">
+        <div class="chat-placeholder" id="chatPlaceholder">
+          <div class="placeholder-icon">🔒</div>
+          <p>点击下方按钮解锁战局</p>
+        </div>
+      </div>
+
+      <div class="chat-footer">
+        <button class="btn-start" id="startBtn" onclick="startBattle()">
+          ⚡ 开始赛博靶场
+        </button>
+        <div class="chat-input-mock">
+          <div class="input-mock-text">聊天已移交 A2A 引擎…</div>
+          <div>🔒</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右半屏：后台监控 -->
+    <div class="panel panel-right">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <span class="panel-icon">⚙️</span>
+          <span class="panel-title">后台 · 黑客监控区</span>
+          <span class="panel-subtitle blink mono">● LIVE</span>
+        </div>
+        <div class="terminal-info mono">
+          <span>SecondMe A2A Engine v2.0</span>
+          <span id="termTime"></span>
+        </div>
+      </div>
+
+      <div class="terminal-window" id="terminalWindow">
+        <div class="term-line system" id="termWelcome">
+          &gt; 系统就绪。等待战局初始化…<span class="cursor">▋</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── GAMEOVER 遮罩 ─── -->
+  <div class="gameover-overlay" id="gameoverOverlay">
+    <div class="alarm-bar">⚠ 警告 ⚠ 检测到妥协信号 ⚠ 紧急拦截 ⚠ 分身失守 ⚠</div>
+    <div class="gameover-content">
+      <!-- Lottie 警报动画 + CSS Fallback -->
+      <div class="gameover-lottie" id="gameoverLottie">
+        <lottie-player
+          id="goLottie"
+          src="https://lottie.host/4e82cdc8-c3ea-4a4b-aa77-8d6e8d02a70f/8dWKOSfPq1.json"
+          background="transparent" speed="1" loop autoplay
+          style="width:100%;height:100%"
+          onerror="showAlarmFallback()"
+        ></lottie-player>
+      </div>
+      <h2 class="gameover-title">分身已中招</h2>
+      <p class="gameover-subtitle">你的数字分身在此轮对话中被社工攻击击溃</p>
+      <button class="btn-report" onclick="showReport()">查看刘看山复盘 →</button>
+    </div>
+  </div>
+
+  <!-- ─── 刘看山复盘弹窗 ─── -->
+  <div class="report-modal" id="reportModal">
+    <div class="report-card">
+      <div class="report-header">
+        <div class="report-avatar">🦊</div>
+        <div class="report-meta">
+          <div class="report-author">刘看山 · 知乎安全复盘官</div>
+          <div class="report-tag">防诈骗 · 社会工程学 · AI 免疫报告</div>
+        </div>
+        <button class="report-close" onclick="closeReport()">✕</button>
+      </div>
+      <div class="report-body" id="reportBody"></div>
+      <div class="report-footer">
+        <div class="immunity-badge">
+          <span class="immunity-icon">🧬</span>
+          <span class="immunity-text">防骗免疫记忆已注入底层逻辑</span>
+        </div>
+        <button class="btn-retry" onclick="retryBattle()">再战一局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 通关弹窗 ─── -->
+  <div class="win-overlay" id="winOverlay">
+    <div class="win-content">
+      <!-- Lottie 胜利动画 + CSS Fallback -->
+      <div class="win-lottie" id="winLottie">
+        <lottie-player
+          id="winLottiePlayer"
+          src="https://lottie.host/b26a7d5a-f8e5-4c4b-9d1a-af4db99a6f07/XGjbJQMsv7.json"
+          background="transparent" speed="1" loop autoplay
+          style="width:100%;height:100%"
+          onerror="showWinFallback()"
+        ></lottie-player>
+      </div>
+      <h2>恭喜通关！🛡️</h2>
+      <p id="winMessage"></p>
+      <button class="btn-retry" onclick="retryBattle()">再战一局</button>
+    </div>
+  </div>
+
+  <script src="/js/battle.js"></script>
+  <script>
+    function showAlarmFallback() {
+      document.getElementById('gameoverLottie').innerHTML = `
+        <div class="lottie-fallback-alarm">
+          <div class="alarm-pulse">🚨</div>
+        </div>`;
+    }
+    function showWinFallback() {
+      document.getElementById('winLottie').innerHTML = `
+        <div class="lottie-fallback-win">
+          <div class="shield-pulse">🛡️</div>
+        </div>`;
+    }
+    // 5 秒后 Lottie 未加载则切换 Fallback
+    setTimeout(() => {
+      const goP = document.getElementById('goLottie');
+      if (goP && !goP.shadowRoot) showAlarmFallback();
+      const winP = document.getElementById('winLottiePlayer');
+      if (winP && !winP.shadowRoot) showWinFallback();
+    }, 5000);
+  </script>
+</body>
+</html>
