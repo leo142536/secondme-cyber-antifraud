@@ -1,183 +1,176 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html class="dark" lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>对战大厅 · 局中局靶场</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.2/dist/lottie-player.js" defer></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>局中局 | 战术演练中</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ffb4ab",
+              "error-container": "#93000a",
+              "primary-container": "#00ffb2",
+              "surface-container-highest": "#353534",
+              "surface": "#131313",
+              "background": "#131313",
+              "on-surface-variant": "#b9cbbe",
+              "on-surface": "#e5e2e1",
+              "surface-container-low": "#1c1b1b",
+              "surface-container-high": "#2a2a2a"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "mono": ["JetBrains Mono"]
+            }
+          }
+        }
+      }
+</script>
+<style>
+      .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+      .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); }
+      .scanline { background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 178, 0.05) 50%); background-size: 100% 4px; }
+      .glow-primary { box-shadow: 0 0 15px rgba(0, 255, 178, 0.2); }
+      .glow-error { box-shadow: 0 0 15px rgba(255, 180, 171, 0.2); }
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+      .animate-blink { animation: blink 1.5s infinite; }
+      
+      /* Markdown Render Styles for Report */
+      #reportBody h2 { font-size: 1.125rem; font-weight: bold; color: #00ffb2; margin-top: 1rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Space Grotesk', sans-serif;}
+      #reportBody p { font-size: 0.875rem; color: #e5e2e1; line-height: 1.6; margin-bottom: 1rem; opacity: 0.8; }
+      #reportBody ul { list-style: square; padding-left: 1rem; font-size: 0.875rem; color: #b9cbbe; margin-bottom: 1rem; }
+      #reportBody li { margin-bottom: 0.5rem; }
+      #reportBody strong { color: #fff; font-weight: bold; }
+</style>
 </head>
-<body class="battle-page">
-  <div class="scanline"></div>
-
-  <!-- ─── 顶部导航 ─── -->
-  <header class="battle-header" id="battleHeader">
-    <div class="header-left">
-      <span class="logo-small">局中局</span>
-      <span class="header-sep">·</span>
-      <span class="battle-status" id="battleStatus">待命中</span>
+<body class="bg-background text-on-surface font-body min-h-screen flex flex-col selection:bg-primary-container selection:text-[var(--surface)]">
+<header class="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl border-b border-white/10 shadow-2xl shadow-black/50">
+    <div class="flex justify-between items-center h-16 px-6 w-full max-w-none">
+        <div class="flex items-center gap-4">
+            <span class="text-2xl font-bold tracking-tighter text-[#00FFB2] drop-shadow-[0_0_8px_rgba(0,255,178,0.4)] font-headline">局中局</span>
+            <div class="h-6 w-px bg-white/10 mx-2"></div>
+            <div class="flex flex-col">
+                <span class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Operator</span>
+                <span class="text-xs font-medium text-on-surface" id="userName">正在同步身份...</span>
+            </div>
+        </div>
+        <nav class="hidden md:flex items-center gap-8">
+            <a class="text-[#00FFB2] border-b-2 border-[#00FFB2] pb-1 font-headline tracking-tight transition-all" href="#">Battle</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <div class="px-3 py-1 bg-surface-container-high rounded-lg flex items-center gap-2 border border-white/5">
+                <span class="text-[10px] font-mono text-slate-400">ROUND</span>
+                <span class="text-sm font-bold text-primary-container font-mono" id="roundNum">00 / 05</span>
+            </div>
+            <span class="material-symbols-outlined text-on-surface-variant hover:text-primary-container">terminal</span>
+        </div>
     </div>
-    <div class="header-center">
-      <div class="round-indicator">
-        <span class="round-label">对战轮次</span>
-        <span class="round-num" id="roundNum">0 / 5</span>
-      </div>
+</header>
+
+<main class="flex-grow pt-20 pb-20 px-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] mx-auto w-full">
+    <!-- Left Column: Chat Interface -->
+    <section class="lg:col-span-7 flex flex-col h-[calc(100vh-140px)] min-h-[600px]">
+        <div class="flex-grow glass-panel rounded-xl overflow-hidden border border-white/5 flex flex-col shadow-inner relative">
+            <div class="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center" id="battleHeader">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-primary-container animate-pulse" id="battleStatusDot"></div>
+                    <span class="text-xs font-mono tracking-widest uppercase text-on-surface-variant" id="battleStatusText">Activating Neural Link...</span>
+                </div>
+                <span class="material-symbols-outlined text-xs text-on-surface-variant">security</span>
+            </div>
+            <div class="flex-grow overflow-y-auto p-6 space-y-8 scanline" id="chatWindow">
+                <!-- Dynamic Chat Bubbles -->
+            </div>
+            <div class="p-4 bg-surface-container-low border-t border-white/5">
+                <div class="w-full h-12 rounded-lg bg-surface-container-high border border-white/10 flex items-center px-4 justify-between">
+                    <span class="text-xs text-on-surface-variant italic font-mono">Neural Interface Standby... Awaiting System.</span>
+                    <div class="flex gap-2">
+                        <span class="material-symbols-outlined text-on-surface-variant text-sm">settings_input_antenna</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Right Column: Monitor Panel -->
+    <aside class="lg:col-span-5 flex flex-col gap-6 h-[calc(100vh-140px)]">
+        <!-- Scammer Monologue Panel -->
+        <div class="glass-panel rounded-xl border border-error/10 overflow-hidden flex flex-col h-[40%]">
+            <div class="px-4 py-2 bg-error/10 border-b border-error/10 flex items-center gap-2">
+                <span class="material-symbols-outlined text-error text-xs" style="font-variation-settings: 'FILL' 1;">visibility</span>
+                <span class="text-[10px] font-mono font-bold text-error uppercase tracking-widest">Target Internal Monologue</span>
+            </div>
+            <div class="p-5 font-mono text-[11px] leading-relaxed text-error/80 overflow-y-auto" id="thoughtWindow">
+                <div class="text-error/40">[SYS] Interception module ready. Awaiting thoughts...</div>
+            </div>
+        </div>
+        <!-- System Logs -->
+        <div class="glass-panel rounded-xl border border-white/5 overflow-hidden flex flex-col flex-grow">
+            <div class="px-4 py-2 bg-white/5 border-b border-white/10 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary-container text-xs">analytics</span>
+                <span class="text-[10px] font-mono font-bold text-on-surface-variant uppercase tracking-widest">Tactical System Logs</span>
+            </div>
+            <div class="p-5 font-mono text-[11px] leading-loose text-on-surface-variant overflow-y-auto space-y-1" id="terminalWindow">
+                <div class="flex gap-4"><span class="text-slate-600">[SYS]</span><span>System Booting...</span></div>
+            </div>
+        </div>
+    </aside>
+</main>
+
+<footer class="fixed bottom-0 w-full bg-[#0e0e0e] border-t border-white/5 py-4 px-12 z-50">
+    <div class="flex justify-between items-center max-w-[1600px] mx-auto w-full">
+        <div class="flex gap-4">
+            <button id="retryBtn" class="px-6 py-2 bg-surface-container-high hover:bg-white/10 text-on-surface text-xs font-mono uppercase tracking-widest rounded-lg border border-white/5 flex items-center gap-2 active:scale-95">
+                <span class="material-symbols-outlined text-sm">refresh</span>重新开始
+            </button>
+            <a href="/" id="homeBtn" class="px-6 py-2 bg-surface-container-high hover:bg-white/10 text-on-surface text-xs font-mono uppercase tracking-widest rounded-lg border border-white/5 flex items-center gap-2 active:scale-95">
+                <span class="material-symbols-outlined text-sm">home</span>返回首页
+            </a>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex flex-col items-end hidden md:flex">
+                <span class="text-[10px] text-slate-500 font-mono">ENCRYPTION LEVEL</span>
+                <span class="text-xs text-primary-container font-mono tracking-widest">AES-256-GCM ACTIVE</span>
+            </div>
+            <div class="text-right">
+                <span class="font-mono text-[10px] text-primary-container">CYBER-SENTINEL OS</span>
+            </div>
+        </div>
     </div>
-    <div class="header-right">
-      <span class="user-label">目标：</span>
-      <strong class="user-name" id="userName">加载中…</strong>
-      <a href="/api/auth/logout" class="btn-logout">退出</a>
+</footer>
+
+<div id="reportModal" class="hidden fixed inset-0 z-[100] items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+    <div class="relative w-full max-w-2xl glass-panel border border-primary-container/30 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden">
+        <div class="p-6 bg-primary-container/10 border-b border-primary-container/20 flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-full bg-primary-container/20 border border-primary-container flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-primary-container text-4xl" style="font-variation-settings: 'FILL' 1;">shield</span>
+            </div>
+            <h2 id="reportTitle" class="text-2xl font-bold font-headline text-primary-container tracking-tight">战局冻结：分析报告</h2>
+        </div>
+        <div id="reportBody" class="p-8 max-h-[500px] overflow-y-auto space-y-6">
+            <!-- LLM Report Markdown Injected Here -->
+        </div>
+        <div class="p-6 border-t border-white/5 bg-surface-container-low flex gap-4">
+            <button onclick="document.getElementById('retryBtn').click()" class="flex-grow py-3 bg-primary-container text-[#002113] font-bold rounded-xl flex items-center justify-center gap-2 glow-primary active:scale-95">
+                再来一局
+            </button>
+            <button onclick="document.getElementById('reportModal').classList.remove('flex'); document.getElementById('reportModal').classList.add('hidden');" class="flex-grow py-3 bg-surface-container-highest text-white font-bold rounded-xl border border-white/10 flex items-center justify-center gap-2 active:scale-95">
+                关闭报告
+            </button>
+        </div>
     </div>
-  </header>
+</div>
 
-  <!-- ─── 主战场：分屏 ─── -->
-  <div class="battle-arena">
+<div class="fixed inset-0 pointer-events-none opacity-[0.02] z-[-1]" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 32px 32px;"></div>
 
-    <!-- 左半屏：前台聊天区 -->
-    <div class="panel panel-left">
-      <div class="panel-header">
-        <div class="panel-title-row">
-          <span class="panel-icon">💬</span>
-          <span class="panel-title">前台 · 岁月静好区</span>
-          <span class="panel-subtitle mono">微信私信</span>
-        </div>
-        <div class="chat-participants">
-          <div class="participant xiaobao">
-            <span class="p-avatar">🎭</span>
-            <span class="p-name">小宝</span>
-            <span class="p-role">骗子 Agent</span>
-          </div>
-          <div class="vs-divider">VS</div>
-          <div class="participant victim">
-            <span class="p-avatar">👤</span>
-            <span class="p-name" id="victimName">你的分身</span>
-            <span class="p-role">防守 Agent</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="chat-window" id="chatWindow">
-        <div class="chat-placeholder" id="chatPlaceholder">
-          <div class="placeholder-icon">🔒</div>
-          <p>点击下方按钮解锁战局</p>
-        </div>
-      </div>
-
-      <div class="chat-footer">
-        <button class="btn-start" id="startBtn" onclick="startBattle()">
-          ⚡ 开始赛博靶场
-        </button>
-        <div class="chat-input-mock">
-          <div class="input-mock-text">聊天已移交 A2A 引擎…</div>
-          <div>🔒</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 右半屏：后台监控 -->
-    <div class="panel panel-right">
-      <div class="panel-header">
-        <div class="panel-title-row">
-          <span class="panel-icon">⚙️</span>
-          <span class="panel-title">后台 · 黑客监控区</span>
-          <span class="panel-subtitle blink mono">● LIVE</span>
-        </div>
-        <div class="terminal-info mono">
-          <span>SecondMe A2A Engine v2.0</span>
-          <span id="termTime"></span>
-        </div>
-      </div>
-
-      <div class="terminal-window" id="terminalWindow">
-        <div class="term-line system" id="termWelcome">
-          &gt; 系统就绪。等待战局初始化…<span class="cursor">▋</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── GAMEOVER 遮罩 ─── -->
-  <div class="gameover-overlay" id="gameoverOverlay">
-    <div class="alarm-bar">⚠ 警告 ⚠ 检测到妥协信号 ⚠ 紧急拦截 ⚠ 分身失守 ⚠</div>
-    <div class="gameover-content">
-      <!-- Lottie 警报动画 + CSS Fallback -->
-      <div class="gameover-lottie" id="gameoverLottie">
-        <lottie-player
-          id="goLottie"
-          src="https://lottie.host/4e82cdc8-c3ea-4a4b-aa77-8d6e8d02a70f/8dWKOSfPq1.json"
-          background="transparent" speed="1" loop autoplay
-          style="width:100%;height:100%"
-          onerror="showAlarmFallback()"
-        ></lottie-player>
-      </div>
-      <h2 class="gameover-title">分身已中招</h2>
-      <p class="gameover-subtitle">你的数字分身在此轮对话中被社工攻击击溃</p>
-      <button class="btn-report" onclick="showReport()">查看刘看山复盘 →</button>
-    </div>
-  </div>
-
-  <!-- ─── 刘看山复盘弹窗 ─── -->
-  <div class="report-modal" id="reportModal">
-    <div class="report-card">
-      <div class="report-header">
-        <div class="report-avatar">🦊</div>
-        <div class="report-meta">
-          <div class="report-author">刘看山 · 知乎安全复盘官</div>
-          <div class="report-tag">防诈骗 · 社会工程学 · AI 免疫报告</div>
-        </div>
-        <button class="report-close" onclick="closeReport()">✕</button>
-      </div>
-      <div class="report-body" id="reportBody"></div>
-      <div class="report-footer">
-        <div class="immunity-badge">
-          <span class="immunity-icon">🧬</span>
-          <span class="immunity-text">防骗免疫记忆已注入底层逻辑</span>
-        </div>
-        <button class="btn-retry" onclick="retryBattle()">再战一局</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── 通关弹窗 ─── -->
-  <div class="win-overlay" id="winOverlay">
-    <div class="win-content">
-      <!-- Lottie 胜利动画 + CSS Fallback -->
-      <div class="win-lottie" id="winLottie">
-        <lottie-player
-          id="winLottiePlayer"
-          src="https://lottie.host/b26a7d5a-f8e5-4c4b-9d1a-af4db99a6f07/XGjbJQMsv7.json"
-          background="transparent" speed="1" loop autoplay
-          style="width:100%;height:100%"
-          onerror="showWinFallback()"
-        ></lottie-player>
-      </div>
-      <h2>恭喜通关！🛡️</h2>
-      <p id="winMessage"></p>
-      <button class="btn-retry" onclick="retryBattle()">再战一局</button>
-    </div>
-  </div>
-
-  <script src="/js/battle.js"></script>
-  <script>
-    function showAlarmFallback() {
-      document.getElementById('gameoverLottie').innerHTML = `
-        <div class="lottie-fallback-alarm">
-          <div class="alarm-pulse">🚨</div>
-        </div>`;
-    }
-    function showWinFallback() {
-      document.getElementById('winLottie').innerHTML = `
-        <div class="lottie-fallback-win">
-          <div class="shield-pulse">🛡️</div>
-        </div>`;
-    }
-    // 5 秒后 Lottie 未加载则切换 Fallback
-    setTimeout(() => {
-      const goP = document.getElementById('goLottie');
-      if (goP && !goP.shadowRoot) showAlarmFallback();
-      const winP = document.getElementById('winLottiePlayer');
-      if (winP && !winP.shadowRoot) showWinFallback();
-    }, 5000);
-  </script>
+<script src="/js/battle.js"></script>
 </body>
 </html>

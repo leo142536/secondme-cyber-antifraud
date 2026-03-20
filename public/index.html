@@ -1,124 +1,150 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html class="dark" lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>局中局 · 赛博反诈免疫靶场</title>
-  <meta name="description" content="利用你的 SecondMe 真实画像，驱动 AI 骗子 Agent 对你的数字分身发动定制诈骗打靶。">
-  <link rel="stylesheet" href="/css/style.css">
-  <!-- Lottie Player Web Component -->
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.2/dist/lottie-player.js" defer></script>
-</head>
-<body class="home-page">
-  <div class="scanline"></div>
-  <div class="noise"></div>
-  <div class="bg-glow"></div>
-
-  <main class="hero">
-
-    <!-- Badge -->
-    <div class="hero-badge">A2A for Reconnect Hackathon 2025</div>
-
-    <!-- 主标题 -->
-    <h1 class="hero-title">
-      <span class="glitch" data-text="局中局">局中局</span>
-    </h1>
-    <p class="hero-subtitle mono">你的分身能活过 5 轮骗局吗？</p>
-
-    <!-- Lottie Hero Animation（雷达主视觉） -->
-    <div class="hero-lottie" id="heroLottie">
-      <!-- Lottie 动画优先加载；加载失败时显示 CSS Fallback -->
-      <lottie-player
-        src="https://lottie.host/5c1c7d4c-bd31-4a57-a024-a9bc0fcda079/XDqEbJXBT2.json"
-        background="transparent"
-        speed="0.7"
-        loop
-        autoplay
-        style="width:100%;height:100%"
-        onerror="showRadarFallback()"
-      ></lottie-player>
-    </div>
-
-    <!-- 描述 -->
-    <p class="hero-desc">
-      提取你的 <span class="highlight">SecondMe</span> 画像，连夜定制真正的<span class="danger">顶级诈骗大模型</span><br>
-      放出你的数字分身，来一场 5 轮 A2A 无限制心智对抗！<em style="color:var(--amber);font-style:normal">敢不敢测测你的防骗底线？</em><br>
-      输了丢掉虚拟财产，赢了带走 <span class="glow-text">刘看山安全免疫防线</span>。
-    </p>
-
-    <!-- 三栏特性 -->
-    <div class="features">
-      <div class="feature-card">
-        <div class="feature-icon">🎭</div>
-        <div class="feature-title">专属定制骗局</div>
-        <div class="feature-desc">基于你真实职业和兴趣生成极具迷惑性的社工话术，无法用通用经验防御</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⚔️</div>
-        <div class="feature-title">A2A 双盲对抗</div>
-        <div class="feature-desc">骗子 Agent（小宝）vs 你的专属数字分身，实时 5 轮博弈，右屏暴露思维链</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🧬</div>
-        <div class="feature-title">免疫记忆注入</div>
-        <div class="feature-desc">守护者刘看山实时复盘骗局套路，提炼防骗底层逻辑写入你的认知系统</div>
-      </div>
-    </div>
-
-    <!-- 登录按钮 -->
-    <div class="login-section">
-      <a href="/api/auth/login" class="btn-login" id="loginBtn">
-        <span class="btn-icon">⚡</span>
-        进入靶场 · Login with SecondMe
-      </a>
-      <p class="login-hint">使用你的 SecondMe 账号赋能靶场——你的真实画像将成为骗局的弹药</p>
-      <div id="errorMsg" class="error-msg" style="display:none"></div>
-    </div>
-  </main>
-
-  <footer class="home-footer">
-    <span>A2A for Reconnect · 2025</span>
-    <span class="sep">—</span>
-    <span>Powered by SecondMe &amp; DeepSeek</span>
-  </footer>
-
-  <script>
-    // Lottie 加载失败时显示 CSS 雷达 fallback
-    function showRadarFallback() {
-      const lottie = document.getElementById('heroLottie');
-      lottie.innerHTML = `
-        <div class="lottie-fallback">
-          <div class="radar-ring"></div>
-          <div class="radar-ring"></div>
-          <div class="radar-ring"></div>
-          <div class="radar-ring"></div>
-          <div class="radar-sweep"></div>
-          <div class="radar-center">🎯</div>
-        </div>
-      `;
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>局中局 | 你的赛博防骗教练</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#00E599",
+                    "accent-blue": "#3B82F6",
+                    "surface": "#0A0C10",
+                    "surface-light": "#161B22",
+                    "on-surface": "#F0F6FC",
+                    "on-surface-variant": "#8B949E",
+                },
+                fontFamily: {
+                    "headline": ["Plus Jakarta Sans", "Inter", "sans-serif"],
+                    "body": ["Inter", "sans-serif"],
+                },
+            },
+        },
     }
+</script>
+<style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .soft-glow { box-shadow: 0 0 40px -10px rgba(0, 229, 153, 0.3); }
+    .lifestyle-gradient { background: radial-gradient(circle at 50% -20%, rgba(0, 229, 153, 0.15) 0%, transparent 50%); }
+    .glass-card {
+        background: rgba(22, 27, 34, 0.6); backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover { transform: translateY(-4px); border-color: rgba(0, 229, 153, 0.3); background: rgba(22, 27, 34, 0.8); }
+    .btn-primary { background: linear-gradient(135deg, #00E599 0%, #00C281 100%); transition: all 0.3s ease; }
+    .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 8px 24px -6px rgba(0, 229, 153, 0.4); }
+    .hero-title {
+        letter-spacing: -0.04em;
+        background: linear-gradient(to bottom, #FFFFFF 40%, rgba(255, 255, 255, 0.7) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-white">
+<div class="fixed inset-0 z-0 pointer-events-none lifestyle-gradient"></div>
 
-    // 3 秒后若 lottie-player 依然空（还未加载），切换 fallback
-    setTimeout(() => {
-      const player = document.querySelector('lottie-player');
-      if (player && !player.shadowRoot) showRadarFallback();
-    }, 4000);
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-lg border-b border-white/5">
+<div class="max-w-7xl mx-auto flex justify-between items-center h-20 px-6">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+            <span class="material-symbols-outlined text-primary text-2xl font-bold">shield_with_heart</span>
+        </div>
+        <span class="text-xl font-extrabold tracking-tight text-white font-headline">局中局</span>
+    </div>
+    <nav class="hidden md:flex items-center gap-10 text-sm font-medium">
+        <a class="text-on-surface-variant hover:text-white transition-colors" href="#">演练流程</a>
+        <a class="text-on-surface-variant hover:text-white transition-colors" href="#">技术文档</a>
+        <a class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 text-white hover:bg-white/5 transition-all" href="https://github.com/leo142536/secondme-cyber-antifraud" target="_blank">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.412-4.041-1.412-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+            GitHub
+        </a>
+    </nav>
+</div>
+</header>
+<main class="relative z-10 pt-20">
+<section class="relative min-h-[90vh] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+    <div class="max-w-4xl mx-auto space-y-10 relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-on-surface-variant text-xs font-medium tracking-wide">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            智能演练系统已就绪
+        </div>
+        <h1 class="text-7xl md:text-[10rem] font-headline font-extrabold hero-title leading-tight">
+            局中局
+        </h1>
+        <p class="text-xl md:text-2xl text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-light">
+            你的 AI 分身能活过 5 轮骗局吗？<br/><br/>
+            <span class="text-white font-medium text-lg">基于 SecondMe 真实画像定制诈骗靶场，在模拟中识破骗局，为真实生活穿上数字化盔甲。</span>
+        </p>
+        <div class="pt-8 space-y-4">
+            <!-- Modified CTA Button -->
+            <a href="/api/auth/login" class="btn-primary soft-glow px-10 py-5 w-fit rounded-2xl text-surface font-bold text-xl flex items-center gap-3 mx-auto transition-all transform hover:scale-[1.02] active:scale-95">
+                <span class="material-symbols-outlined font-bold">lock_open</span>
+                接入系统 · Login with SecondMe
+            </a>
+            <p class="text-sm font-medium text-on-surface-variant/60">安全 OAuth 2.0 验证 · 无需密码</p>
+            <div id="errorMsg" class="hidden text-red-400 bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl text-sm max-w-md mx-auto mt-4 font-mono"></div>
+        </div>
+    </div>
+    <div class="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 blur-[120px] rounded-[100%] pointer-events-none"></div>
+</section>
 
-    // 错误提示
+<section class="py-32 px-6 max-w-7xl mx-auto">
+    <div class="text-center mb-20 space-y-4">
+        <h2 class="text-4xl md:text-5xl font-headline font-extrabold text-white">演练流程</h2>
+        <p class="text-on-surface-variant text-lg">简单三步，建立免疫系统</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="glass-card p-12 rounded-3xl group">
+            <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-8 text-primary">
+                <span class="material-symbols-outlined text-3xl">account_circle</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">身份同步</h3>
+            <p class="text-on-surface-variant leading-relaxed">
+                通过 <span class="text-white font-bold">SecondMe</span> 同步你的真实社交画像，让 AI 学习你的日常沟通习惯，构建高度定制化的欺诈陷阱。
+            </p>
+        </div>
+        <div class="glass-card p-12 rounded-3xl group border-accent-blue/20">
+            <div class="w-14 h-14 bg-accent-blue/10 rounded-2xl flex items-center justify-center mb-8 text-accent-blue">
+                <span class="material-symbols-outlined text-3xl">chat_bubble_outline</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">多轮博弈</h3>
+            <p class="text-on-surface-variant leading-relaxed">
+                骗子 Agent 根据你的弱点，发起具有极强针对性的 “A2A” 饱和式降维打击，看你的分身能否抵御诱惑。
+            </p>
+        </div>
+        <div class="glass-card p-12 rounded-3xl group">
+            <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-8 text-primary">
+                <span class="material-symbols-outlined text-3xl">verified</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">知乎热榜复盘</h3>
+            <p class="text-on-surface-variant leading-relaxed">
+                每次战役结束，安全官刘看山为你生成知乎神帖风格的犀利逻辑拆解，将黑客战术写入你的防火墙。
+            </p>
+        </div>
+    </div>
+</section>
+</main>
+<footer class="bg-surface border-t border-white/5 py-12 px-6 relative z-10">
+    <div class="max-w-7xl mx-auto flex flex-col items-center">
+        <p class="text-on-surface-variant/50 font-mono text-sm">© 2026 SecondMe Hackathon. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
     const urlParams = new URLSearchParams(window.location.search);
     const err = urlParams.get('error');
     if (err) {
-      const el = document.getElementById('errorMsg');
-      el.textContent = '登录失败：' + decodeURIComponent(err) + '（请检查 .env 配置）';
-      el.style.display = 'block';
+        const el = document.getElementById('errorMsg');
+        el.textContent = '登录失败：' + decodeURIComponent(err) + ' (这说明你的密钥没配对)';
+        el.classList.remove('hidden');
     }
-
-    // Glitch 随机触发
-    const glitch = document.querySelector('.glitch');
-    setInterval(() => {
-      glitch.classList.add('glitch-active');
-      setTimeout(() => glitch.classList.remove('glitch-active'), 220);
-    }, 3200);
-  </script>
+</script>
 </body>
 </html>

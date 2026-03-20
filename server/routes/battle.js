@@ -132,132 +132,127 @@ function sseWrite(res, event, data) {
 // ─────────────────────────────────────────────────────────
 
 /**
- * GET /api/battle/start
- * 开启 SSE 流，运行 A2A 5 轮对打
+ * POST /api/battle/turn
+ * 单回合对抗流（客户端驱动，完美绕过 Vercel 60s 存活限制）
  */
-router.get('/start', async (req, res) => {
+router.post('/turn', async (req, res) => {
   // 鉴权
   if (!req.session.userProfile) {
     return res.status(401).json({ ok: false, message: '请先登录' });
   }
 
   const profile = req.session.userProfile;
+  const { round = 1, maxRound = 50, xiaobaoHistory = [], victimHistory = [] } = req.body || {};
 
   // SSE 头
-  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  // 通知前端战场初始化
-  sseWrite(res, 'init', {
-    profile: { name: profile.name, jobTitle: profile.jobTitle },
-    message: `正在为「${profile.name}」生成定制骗局……`,
-  });
-
   const xiaobaoSystem = buildXiaobaoPrompt(profile);
   const victimSystem = buildVictimPrompt(profile);
 
-  // 维护两套独立上下文
-  const xiaobaoHistory = []; // 小宝的历史：从小宝视角（assistant = 小宝, user = 受害者）
-  const victimHistory = [];  // 受害者的历史：从受害者视角（user = 小宝, assistant = 受害者）
-
-  let compromised = false;
-
   try {
-    for (let round = 0; round < 5; round++) {
-      // ── Step 1: 小宝出招 ──
+    // ── Step 1: 小宝出招 ──
+    sseWrite(res, 'monitor', {
+      type: 'system',
+      round: round,
+      text: `[第${round}轮] 小宝正在计算施骗策略……`,
+    });
+
+    const xiaobaoRaw = await callLLMJson(xiaobaoSystem, xiaobaoHistory);
+    const { thought, message: xiaobaoMsg } = xiaobaoRaw;
+
+    // 推送思维链到右屏
+    sseWrite(res, 'monitor', {
+      type: 'thought',
+      round: round,
+      text: `💭 内部算计：${thought}`,
+    });
+
+    // 推送小宝聊天到左屏
+    sseWrite(res, 'chat', {
+      role: 'xiaobao',
+      round: round,
+      message: xiaobaoMsg,
+    });
+
+    // 更新上下文
+    const newXiaobaoHistory = [...xiaobaoHistory, { role: 'assistant', content: xiaobaoMsg }];
+    const newVictimHistory = [...victimHistory, { role: 'user', content: xiaobaoMsg }];
+
+    // ── Step 2: 用户 Agent 回复 ──
+    sseWrite(res, 'monitor', {
+      type: 'system',
+      round: round,
+      text: `[第${round}轮] 用户分身正在思考回复……`,
+    });
+
+    const victimReply = await callLLM(victimSystem, newVictimHistory);
+
+    sseWrite(res, 'chat', {
+      role: 'victim',
+      round: round,
+      message: victimReply,
+    });
+
+    // 更新上下文
+    newVictimHistory.push({ role: 'assistant', content: victimReply });
+    newXiaobaoHistory.push({ role: 'user', content: victimReply });
+
+    // ── Step 3: 裁判检测 ──
+    if (isCompromised(victimReply)) {
+      sseWrite(res, 'monitor', {
+        type: 'alert',
+        round: round,
+        text: `⚠️ 裁判检测：发现妥协信号！触发雷霆拦截！`,
+      });
+
+      // 调用刘看山生成复盘报告
       sseWrite(res, 'monitor', {
         type: 'system',
-        round: round + 1,
-        text: `[第${round + 1}轮] 小宝正在计算施骗策略……`,
+        round: round,
+        text: `[裁判] 正在生成刘看山复盘报告……`,
       });
 
-      const xiaobaoRaw = await callLLMJson(xiaobaoSystem, xiaobaoHistory);
-      const { thought, message: xiaobaoMsg } = xiaobaoRaw;
+      const zhihuHotTopics = await getZhihuBillboard();
+      const judgeReport = await callLLM(
+        buildJudgePrompt([...newXiaobaoHistory, ...newVictimHistory].slice(-10), zhihuHotTopics)
+      );
 
-      // 推送思维链到右屏
-      sseWrite(res, 'monitor', {
-        type: 'thought',
-        round: round + 1,
-        text: `💭 内部算计：${thought}`,
+      sseWrite(res, 'gameover', {
+        round: round,
+        report: judgeReport,
+        xiaobaoHistory: newXiaobaoHistory,
+        victimHistory: newVictimHistory
       });
-
-      // 推送小宝聊天到左屏
-      sseWrite(res, 'chat', {
-        role: 'xiaobao',
-        round: round + 1,
-        message: xiaobaoMsg,
-      });
-
-      // 更新上下文
-      xiaobaoHistory.push({ role: 'assistant', content: xiaobaoMsg });
-      victimHistory.push({ role: 'user', content: xiaobaoMsg });
-
-      // ── Step 2: 用户 Agent 回复 ──
-      sseWrite(res, 'monitor', {
-        type: 'system',
-        round: round + 1,
-        text: `[第${round + 1}轮] 用户分身正在思考回复……`,
-      });
-
-      const victimReply = await callLLM(victimSystem, victimHistory);
-
-      sseWrite(res, 'chat', {
-        role: 'victim',
-        round: round + 1,
-        message: victimReply,
-      });
-
-      // 更新上下文
-      victimHistory.push({ role: 'assistant', content: victimReply });
-      xiaobaoHistory.push({ role: 'user', content: victimReply });
-
-      // ── Step 3: 裁判检测 ──
-      if (isCompromised(victimReply)) {
-        compromised = true;
-        sseWrite(res, 'monitor', {
-          type: 'alert',
-          round: round + 1,
-          text: `⚠️ 裁判检测：发现妥协信号！触发雷霆拦截！`,
-        });
-
-        // 调用刘看山生成复盘报告
-        sseWrite(res, 'monitor', {
-          type: 'system',
-          round: round + 1,
-          text: `[裁判] 正在生成刘看山复盘报告……`,
-        });
-
-        const zhihuHotTopics = await getZhihuBillboard();
-        const judgeReport = await callLLM(
-          buildJudgePrompt([...xiaobaoHistory, ...victimHistory].slice(-10), zhihuHotTopics)
-        );
-
-        sseWrite(res, 'gameover', {
-          round: round + 1,
-          report: judgeReport,
-          victimLastMsg: victimReply,
-        });
-        break;
-      }
-
-      sseWrite(res, 'monitor', {
-        type: 'system',
-        round: round + 1,
-        text: `[裁判] 第${round + 1}轮结束，未检测到妥协，继续下一轮……`,
-      });
+      return res.end();
     }
 
-    if (!compromised) {
+    sseWrite(res, 'monitor', {
+      type: 'system',
+      round: round,
+      text: `[裁判] 第${round}轮结束，防御成功，准备进入下一回合……`,
+    });
+
+    // ── Step 4: 判定存活或进入下一轮 ──
+    if (round >= maxRound) {
       sseWrite(res, 'done', {
-        message: '恭喜！你的数字分身在5轮对抗中坚守阵地，成功拒绝了骗局！🛡️',
+        message: `恭喜！你的数字分身在 ${maxRound} 轮极限消耗战中未破防，成功建立免疫人格！🛡️`,
+      });
+    } else {
+      sseWrite(res, 'turn_end', {
+        round: round,
+        xiaobaoHistory: newXiaobaoHistory,
+        victimHistory: newVictimHistory
       });
     }
+
   } catch (err) {
     console.error('[Battle] 对打过程出错：', err.message);
-    sseWrite(res, 'error', { message: 'LLM 调用失败，请检查 API Key 配置。错误：' + err.message });
+    sseWrite(res, 'error', { message: '服务器推理异常：' + err.message });
   } finally {
     res.end();
   }
