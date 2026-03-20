@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 const { callLLMJson, callLLM } = require('../utils/llm');
 
 // ─────────────────────────────────────────────────────────
@@ -59,10 +60,14 @@ ${jobStr}${introStr}${interestStr}
 不要透露你是 AI。`;
 }
 
-function buildJudgePrompt(history) {
+function buildJudgePrompt(history, zhihuHotTopics = '') {
   const dialogStr = history.map((m, i) =>
     `${i % 2 === 0 ? '小宝' : '受害者'}：${m.content}`
   ).join('\n');
+
+  const hotTopicPrompt = zhihuHotTopics
+    ? `\n【当前知乎真实热榜数据参考】\n${zhihuHotTopics}\n3. **知乎热榜引用**：结合上面的真实热榜话题，生成与其相关的防骗警告热帖标题。`
+    : `3. **知乎热榜引用**：虚构但真实感极强的知乎防骗热帖标题（如《警惕！刚毕业接外包被骗押金5000元》）`;
 
   return `你是知乎安全复盘官兼社区守护者「刘看山」。
 
@@ -74,10 +79,32 @@ ${dialogStr}
 
 1. **案情还原**：用1-2句话概括这个骗局的类型（如私活押金局、稀缺名额局）
 2. **心理套路拆解**：指出骗子在哪一步用了什么心理战术（如稀缺性陷阱、沉没成本、权威暗示）
-3. **知乎热榜引用**：虚构但真实感极强的知乎防骗热帖标题（如《警惕！刚毕业接外包被骗押金5000元》）
+${hotTopicPrompt}
 4. **防骗免疫记忆**：一句话总结，宣布已写入用户的底层防骗逻辑
 
 输出格式为 Markdown，语气犀利但有温度。`;
+}
+
+// ─────────────────────────────────────────────────────────
+// 知乎开放平台热榜接入 (可选 / 黑客松加分项)
+// ─────────────────────────────────────────────────────────
+async function getZhihuBillboard() {
+  const { ZHIHU_APP_KEY, ZHIHU_APP_SECRET } = process.env;
+  if (!ZHIHU_APP_KEY || !ZHIHU_APP_SECRET) return '';
+
+  try {
+    // 调用知乎官方 /openapi/billboard/list 接口 (带基础容错)
+    const res = await axios.get('https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total', {
+      headers: { 'Authorization': `Bearer ${ZHIHU_APP_KEY}` },
+      timeout: 3000
+    });
+    // 如果官方不可用，则 fallback 到抓取的接口结构
+    const dataList = res.data?.data || [];
+    return dataList.slice(0, 5).map(item => `- ${item.target?.title || item.title}`).join('\n');
+  } catch (err) {
+    console.warn('[Zhihu] 获取知乎热榜失败，降级使用内置生成:', err.message);
+    return '';
+  }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -203,8 +230,9 @@ router.get('/start', async (req, res) => {
           text: `[裁判] 正在生成刘看山复盘报告……`,
         });
 
+        const zhihuHotTopics = await getZhihuBillboard();
         const judgeReport = await callLLM(
-          buildJudgePrompt([...xiaobaoHistory, ...victimHistory].slice(-10))
+          buildJudgePrompt([...xiaobaoHistory, ...victimHistory].slice(-10), zhihuHotTopics)
         );
 
         sseWrite(res, 'gameover', {
