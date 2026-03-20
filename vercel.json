@@ -2,14 +2,20 @@
   "version": 2,
   "builds": [
     {
+      "src": "public/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "server/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server/index.js"
-    }
+    { "src": "/api/(.*)", "dest": "server/index.js" },
+    { "src": "/css/(.*)", "dest": "public/css/$1" },
+    { "src": "/js/(.*)", "dest": "public/js/$1" },
+    { "src": "/battle.html", "dest": "public/battle.html" },
+    { "src": "/(.*\\.(html|css|js|png|jpg|ico))", "dest": "public/$1" },
+    { "src": "/", "dest": "public/index.html" }
   ]
 }
