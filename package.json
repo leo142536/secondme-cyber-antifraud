@@ -1,7 +1,7 @@
 {
   "name": "secondme-anti-fraud",
   "version": "1.0.0",
-  "description": "局中局：A2A 赛博反诈免疫靶场 - A2A for Reconnect Hackathon",
+  "description": "局中局：你的分身能活过5轮骗局吗？- 用真实 SecondMe 画像喂养的 A2A 赛博防骗靶场",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
