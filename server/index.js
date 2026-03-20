@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 
 const authRouter = require('./routes/auth');
@@ -13,12 +13,31 @@ const PORT = process.env.PORT || 3000;
 // 中间件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }, // 24h
-}));
+app.use(cookieParser(process.env.SESSION_SECRET || 'dev-secret'));
+
+// ── Session 兼容层（读写 cookie，与 req.session 接口保持一致）──
+app.use((req, res, next) => {
+  // 读取 session cookie
+  const raw = req.signedCookies['_sess'];
+  try {
+    req.session = raw ? JSON.parse(Buffer.from(raw, 'base64').toString()) : {};
+  } catch {
+    req.session = {};
+  }
+
+  // 注入 save 方法，让路由可以调用 req.session.save?.() 保存
+  res.saveSession = () => {
+    const encoded = Buffer.from(JSON.stringify(req.session)).toString('base64');
+    res.cookie('_sess', encoded, {
+      signed: true,
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+    });
+  };
+
+  next();
+});
 
 // 静态文件
 app.use(express.static(path.join(__dirname, '../public')));
@@ -44,3 +63,5 @@ app.listen(PORT, () => {
     console.warn(`⚠️  警告：LLM_API_KEY 未配置，请填写 .env`);
   }
 });
+
+module.exports = app;

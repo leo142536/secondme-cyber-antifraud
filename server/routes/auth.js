@@ -72,7 +72,7 @@ router.get('/callback', async (req, res) => {
     const userInfo = infoRes.data?.data || {};
     const shades = shadesRes.data?.data || [];
 
-    // 3. 组装用户画像存入 session
+    // 3. 组装用户画像存入 session（cookie 兼容存储）
     req.session.accessToken = accessToken;
     req.session.userProfile = {
       name: userInfo.nickname || userInfo.name || '神秘用户',
@@ -82,6 +82,9 @@ router.get('/callback', async (req, res) => {
         ? shades.map(s => s.tagName || s.name || s).filter(Boolean).slice(0, 6)
         : [],
     };
+
+    // 将 session 写入签名 cookie（Vercel Serverless 兼容）
+    res.saveSession();
 
     console.log(`[Auth] 用户登录成功：${req.session.userProfile.name}`);
     res.redirect('/battle.html');
@@ -106,7 +109,8 @@ router.get('/me', (req, res) => {
  * GET /api/auth/logout
  */
 router.get('/logout', (req, res) => {
-  req.session.destroy();
+  req.session = {};
+  res.saveSession();
   res.redirect('/');
 });
 
